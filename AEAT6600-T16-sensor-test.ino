@@ -5,7 +5,7 @@
 // sensor bits, flags, and masks
 #define SENSOR_TOTAL_BITS    (16)  // 18 bits of data
 #define SENSOR_ANGLE_BITS    (16)
-#define SENSOR_ANGLE_PER_BIT (360.0/(float)((long)1<<SENSOR_ANGLE_BITS))
+#define SENSOR_ANGLE_PER_BIT (360.0/(float)((long)1<<SENSOR_ANGLE_BITS))  // 0.00549316406
 
 // pins for sensor
 #define PIN_SENSOR_CSEL   24
@@ -26,8 +26,8 @@ void setup() {
   pinMode(PIN_MAG_HIGH, INPUT);
 
   
-  digitalWrite(PIN_SENSOR_CLK, HIGH);
   digitalWrite(PIN_SENSOR_CSEL, LOW);
+  digitalWrite(PIN_SENSOR_CLK, HIGH);
   
   previousAngle = -1;
 }
@@ -72,26 +72,24 @@ uint32_t sensor_update() {
   uint32_t data = 0, inputStream;
   int x;
 
-  digitalWrite(PIN_SENSOR_CSEL, LOW);
-  digitalWrite(PIN_SENSOR_CLK, HIGH);
-  //while(digitalRead(PIN_SENSOR_SDOUT)==LOW);
-  
-  // tWait is supposed to be max 10us
+  // 10ns since last read
   digitalWrite(PIN_SENSOR_CSEL, HIGH);
-  //while(digitalRead(PIN_SENSOR_SDOUT)==HIGH);
-  // dCsn is supposed to be typical 500ns 
-  //delayNanoseconds(500);
+  // 500ns wait
   digitalWrite(PIN_SENSOR_CSEL, LOW);
 
   for (x = 0; x < SENSOR_TOTAL_BITS; x++) {
     // Set the clock low.  On the next high sensor will start to deliver data.
     digitalWrite(PIN_SENSOR_CLK, LOW);
+    // 50ns typical wait
     digitalWrite(PIN_SENSOR_CLK, HIGH);
     inputStream = digitalRead(PIN_SENSOR_SDOUT);
     //delayMicroseconds(1);
     // one bit of data is now waiting on sensor pin
     data = ((data << 1) + inputStream); // left-shift summing variable, add pin value
   }
+  
+  digitalWrite(PIN_SENSOR_CSEL, LOW);
+  digitalWrite(PIN_SENSOR_CLK, HIGH);
   
   return data;
 }
