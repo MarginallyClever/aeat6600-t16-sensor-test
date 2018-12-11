@@ -10,9 +10,9 @@
 // pins for sensor
 #define PIN_SENSOR_CSEL   24
 #define PIN_SENSOR_CLK    26
-#define PIN_SENSOR_SDOUT  28
-#define PIN_MAG_LOW       43
-#define PIN_MAG_HIGH      45
+#define PIN_SENSOR_D0     28
+#define PIN_SENSOR_MAGL   43
+#define PIN_SENSOR_MAGH   45
 
 float previousAngle;
 
@@ -21,9 +21,9 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(PIN_SENSOR_CLK, OUTPUT);
   pinMode(PIN_SENSOR_CSEL, OUTPUT);
-  pinMode(PIN_SENSOR_SDOUT, INPUT);
-  pinMode(PIN_MAG_LOW, INPUT);
-  pinMode(PIN_MAG_HIGH, INPUT);
+  pinMode(PIN_SENSOR_D0, INPUT);
+  pinMode(PIN_SENSOR_MAGL, INPUT);
+  pinMode(PIN_SENSOR_MAGH, INPUT);
 
   
   digitalWrite(PIN_SENSOR_CSEL, LOW);
@@ -47,8 +47,8 @@ void loop() {
       printBinary(16,d);
       //Serial.print(d,BIN);
       Serial.print('\t');
-      Serial.print(digitalRead(PIN_MAG_LOW)==HIGH?'1':'0');
-      Serial.print(digitalRead(PIN_MAG_HIGH)==HIGH?'1':'0');
+      Serial.print(digitalRead(PIN_SENSOR_MAGL)==HIGH?'1':'0');
+      Serial.print(digitalRead(PIN_SENSOR_MAGH)==HIGH?'1':'0');
       Serial.print('\t');
       Serial.print(currentAngle);
     }
@@ -82,7 +82,7 @@ uint32_t sensor_update() {
     digitalWrite(PIN_SENSOR_CLK, LOW);
     // 50ns typical wait
     digitalWrite(PIN_SENSOR_CLK, HIGH);
-    inputStream = digitalRead(PIN_SENSOR_SDOUT);
+    inputStream = digitalRead(PIN_SENSOR_D0);
     //delayMicroseconds(1);
     // one bit of data is now waiting on sensor pin
     data = ((data << 1) + inputStream); // left-shift summing variable, add pin value
