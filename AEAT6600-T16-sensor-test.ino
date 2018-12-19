@@ -2,9 +2,15 @@
 // dan@marginallyclever.com 2018-12-07
 // Arduino Mega
 
+// uncomment to see binary (raw) sensor data
+//#define BE_VERBOSE
+
+// uncomment to graph angles in arduino serial plot
+#define ARDUINO_PLOT
+
 // sensor bits, flags, and masks
 #define SENSOR_TOTAL_BITS    (16)  // 18 bits of data
-#define SENSOR_ANGLE_BITS    (16)
+#define SENSOR_ANGLE_BITS    (10)
 #define SENSOR_ANGLE_PER_BIT (360.0/(float)((long)1<<SENSOR_ANGLE_BITS))  // 0.00549316406
 
 // pins for sensor
@@ -15,6 +21,7 @@
 #define PIN_SENSOR_MAGH   45
 
 float previousAngle;
+
 
 void setup() {
   Serial.begin(57600);
@@ -33,28 +40,26 @@ void setup() {
 }
 
 
-uint32_t previousD = 0;
-
 void loop() {
   uint32_t d = sensor_update();
-  //if(previousD!=d)
+  float currentAngle = sensor_angle(d);
+  //if(previousAngle != currentAngle)
   {
-    previousD = d;
-    float currentAngle = sensor_angle(d);
-    //if(previousAngle != currentAngle)
-    {
-      previousAngle = currentAngle;
-      printBinary(16,d);
-      //Serial.print(d,BIN);
-      Serial.print('\t');
-      Serial.print(digitalRead(PIN_SENSOR_MAGL)==HIGH?'1':'0');
-      Serial.print(digitalRead(PIN_SENSOR_MAGH)==HIGH?'1':'0');
-      Serial.print('\t');
-      Serial.print(currentAngle);
-    }
-    Serial.print('\n');
+    previousAngle = currentAngle;
+#ifdef BE_VERBOSE
+    printBinary(16,d);
+    Serial.print('\t');
+#endif
+#ifdef ARDUINO_PLOT
+    Serial.print(currentAngle,3);
+    Serial.print(' ');
+    Serial.print(digitalRead(PIN_SENSOR_MAGL)==HIGH?"20":"0");
+    Serial.print(' ');
+    Serial.print(digitalRead(PIN_SENSOR_MAGH)==HIGH?"10":"0");
+    Serial.println();
+#endif
   }
-  delay(50);
+  delay(20);
 }
 
 
@@ -100,6 +105,7 @@ uint32_t sensor_update() {
    @return the angle in degrees
 */
 float sensor_angle(uint32_t data) {
+  data >>= SENSOR_TOTAL_BITS-SENSOR_ANGLE_BITS;
   // it might be better to say (360*angle)/(2^16) instead of angle*(360.0/2^16) because of rounding errors
   return (data * SENSOR_ANGLE_PER_BIT);
 }
